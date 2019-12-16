@@ -60,7 +60,12 @@ func inlineImages(u string, h []byte) []byte {
 			return tag
 		}
 		if strings.Contains(src, ".svg") {
-			svg, err := get(src)
+			svgURL, err := resolve(u, src)
+			if err != nil {
+				log.Println("failed: ", err)
+				return tag
+			}
+			svg, err := get(svgURL)
 			if err != nil {
 				log.Println("failed: ", err)
 				return tag
