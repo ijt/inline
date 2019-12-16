@@ -94,13 +94,11 @@ func inlineImages(u string, h []byte) []byte {
 func inlineStyles(u string, h []byte) []byte {
 	styleRx := regexp.MustCompile(`<link [^>]*rel="stylesheet"[^>]*>`)
 	return styleRx.ReplaceAllFunc(h, func(tag []byte) []byte {
-		hrefRx := regexp.MustCompile(`href="[^"]*"`)
-		hrefEqn := string(hrefRx.Find(tag))
-		if !strings.Contains(hrefEqn, `href="`) {
-			log.Printf(`stylesheet tag found without href=": %s`, tag)
+		cssURL := getHref(tag)
+		if cssURL == "" {
+			log.Printf("no href found in tag %s", tag)
 			return tag
 		}
-		cssURL := string(hrefEqn[len(`href="`) : len(hrefEqn)-1])
 		cssURL, err := resolve(u, cssURL)
 		if err != nil {
 			log.Println("failed: ", err)
@@ -122,7 +120,31 @@ func inlineStyles(u string, h []byte) []byte {
 }
 
 func inlineScripts(u string, h []byte) []byte {
-	return h
+	scriptRx := regexp.MustCompile(`<script [^>]*(></script>|/>)`)
+	return scriptRx.ReplaceAllFunc(h, func(tag []byte) []byte {
+		scriptURL := getSrc(tag)
+		if scriptURL == "" {
+			log.Printf("no href found in tag %s", tag)
+			return tag
+		}
+		scriptURL, err := resolve(u, scriptURL)
+		if err != nil {
+			log.Println("failed: ", err)
+			return tag
+		}
+		log.Printf("inlining script from %s", scriptURL)
+		script, err := get(scriptURL)
+		if err != nil {
+			log.Printf("fetching script at %s: %s", scriptURL, err)
+			return tag
+		}
+		elt := fmt.Sprintf(`
+			<script>
+				%s
+			</script>
+		`, script)
+		return []byte(elt)
+	})
 }
 
 func get(u string) ([]byte, error) {
@@ -150,4 +172,22 @@ func resolve(baseURL, r string) (string, error) {
 	}
 	abs := base.ResolveReference(u)
 	return abs.String(), nil
+}
+
+func getHref(tag []byte) string {
+	hrefRx := regexp.MustCompile(`href="[^"]*"`)
+	hrefEqn := string(hrefRx.Find(tag))
+	if !strings.Contains(hrefEqn, `href="`) {
+		return ""
+	}
+	return string(hrefEqn[len(`href="`) : len(hrefEqn)-1])
+}
+
+func getSrc(tag []byte) string {
+	srcRx := regexp.MustCompile(`src="[^"]*"`)
+	srcEqn := string(srcRx.Find(tag))
+	if !strings.Contains(srcEqn, `src="`) {
+		return ""
+	}
+	return string(srcEqn[len(`src="`) : len(srcEqn)-1])
 }
