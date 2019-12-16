@@ -60,10 +60,14 @@ func inlineImages(u string, h []byte) []byte {
 				return src
 			}
 			imgURL := string(content)
-			imgURL = relativize(u, imgURL)
+			imgURL, err := resolve(u, imgURL)
+			if err != nil {
+				log.Println("failed: ", err)
+				return src
+			}
 			imgBytes, err := get(imgURL)
 			if err != nil {
-				log.Printf("%s", err)
+				log.Println(err)
 				return src
 			}
 			src2 := []byte(`src="`)
@@ -97,7 +101,11 @@ func inlineStyles(u string, h []byte) []byte {
 			return tag
 		}
 		cssURL := string(hrefEqn[len(`href="`) : len(hrefEqn)-1])
-		cssURL = relativize(u, cssURL)
+		cssURL, err := resolve(u, cssURL)
+		if err != nil {
+			log.Println("failed: ", err)
+			return tag
+		}
 		log.Printf("inlining CSS from %s", cssURL)
 		css, err := get(cssURL)
 		if err != nil {
@@ -130,16 +138,16 @@ func get(u string) ([]byte, error) {
 	return bod, nil
 }
 
-// relativize makes the url r relative to baseURL if r is a relative URL.
-func relativize(baseURL, r string) string {
+// resolve makes the url r relative to baseURL if r is a relative URL.
+func resolve(baseURL, r string) (string, error) {
 	u, err := url.Parse(r)
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.Wrap(err, "parsing possibly relative URL")
 	}
 	base, err := url.Parse(baseURL)
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.Wrap(err, "parsing base URL")
 	}
 	abs := base.ResolveReference(u)
-	return abs.String()
+	return abs.String(), nil
 }
