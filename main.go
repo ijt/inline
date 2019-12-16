@@ -70,6 +70,7 @@ func inlineImages(u string, h []byte) []byte {
 				log.Println("failed: ", err)
 				return tag
 			}
+			log.Printf("inlining %s", svgURL)
 			elt := fmt.Sprintf(`
 				<svg>
 					%s
