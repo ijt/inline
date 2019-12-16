@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -97,6 +98,7 @@ func inlineStyles(u string, h []byte) []byte {
 		}
 		cssURL := string(hrefEqn[len(`href="`) : len(hrefEqn)-1])
 		cssURL = relativize(u, cssURL)
+		log.Printf("inlining CSS from %s", cssURL)
 		css, err := get(cssURL)
 		if err != nil {
 			log.Printf("fetching CSS at %s: %s", cssURL, err)
@@ -130,10 +132,14 @@ func get(u string) ([]byte, error) {
 
 // relativize makes the url r relative to baseURL if r is a relative URL.
 func relativize(baseURL, r string) string {
-	if !strings.HasPrefix(r, "http") {
-		tailRx := regexp.MustCompile(`/[^/]*$`)
-		dir := tailRx.ReplaceAllString(baseURL, "")
-		return dir + "/" + r
+	u, err := url.Parse(r)
+	if err != nil {
+		log.Fatal(err)
 	}
-	return r
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	abs := base.ResolveReference(u)
+	return abs.String()
 }
