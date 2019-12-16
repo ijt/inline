@@ -59,11 +59,7 @@ func inlineImages(u string, h []byte) []byte {
 				return src
 			}
 			imgURL := string(content)
-			if !strings.HasPrefix(imgURL, "http") {
-				tailRx := regexp.MustCompile(`/[^/]*$`)
-				dir := tailRx.ReplaceAllString(u, "")
-				imgURL = dir + "/" + imgURL
-			}
+			imgURL = relativize(u, imgURL)
 			imgBytes, err := get(imgURL)
 			if err != nil {
 				log.Printf("%s", err)
@@ -91,6 +87,28 @@ func inlineImages(u string, h []byte) []byte {
 }
 
 func inlineStyles(u string, h []byte) []byte {
+	styleRx := regexp.MustCompile(`<link [^>]*rel="stylesheet"[^>]*>`)
+	styleRx.ReplaceAllFunc(h, func(tag []byte) []byte {
+		hrefRx := regexp.MustCompile(`href="`)
+		hrefEqn := string(hrefRx.Find(tag))
+		if !strings.Contains(hrefEqn, `href="`) {
+			log.Printf(`stylesheet tag found without href=": %s`, tag)
+			return tag
+		}
+		cssURL := string(hrefEqn[len(`href="`) : len(hrefEqn)-1])
+		cssURL = relativize(u, cssURL)
+		css, err := get(cssURL)
+		if err != nil {
+			log.Printf("fetching CSS at %s: %s", cssURL, err)
+			return tag
+		}
+		cssElt := fmt.Sprintf(`
+			<style>
+				%s
+			</style>
+		`, css)
+		return []byte(cssElt)
+	})
 	return h
 }
 
@@ -109,4 +127,14 @@ func get(u string) ([]byte, error) {
 		return nil, errors.Wrap(err, "reading body of page")
 	}
 	return bod, nil
+}
+
+func relativize(baseURL, u string) string {
+	if !strings.HasPrefix(u, "http") {
+		tailRx := regexp.MustCompile(`/[^/]*$`)
+		dir := tailRx.ReplaceAllString(u, "")
+		return dir + "/" + u
+	}
+	return u
+
 }
