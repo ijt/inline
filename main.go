@@ -95,7 +95,7 @@ func inlineImages(u string, h []byte) []byte {
 			} else if strings.Contains(imgURL, ".png") {
 				src2 = append(src2, []byte(`data:image/png;base64,`)...)
 			} else {
-				log.Printf("Skpping image in unrecognized format: %s", imgURL)
+				log.Printf("skipping image in unrecognized format: %s", imgURL)
 				return src
 			}
 			// TODO(ijt): use NewEncoder().
