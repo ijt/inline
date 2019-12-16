@@ -88,8 +88,8 @@ func inlineImages(u string, h []byte) []byte {
 
 func inlineStyles(u string, h []byte) []byte {
 	styleRx := regexp.MustCompile(`<link [^>]*rel="stylesheet"[^>]*>`)
-	styleRx.ReplaceAllFunc(h, func(tag []byte) []byte {
-		hrefRx := regexp.MustCompile(`href="`)
+	return styleRx.ReplaceAllFunc(h, func(tag []byte) []byte {
+		hrefRx := regexp.MustCompile(`href="[^"]*"`)
 		hrefEqn := string(hrefRx.Find(tag))
 		if !strings.Contains(hrefEqn, `href="`) {
 			log.Printf(`stylesheet tag found without href=": %s`, tag)
@@ -109,7 +109,6 @@ func inlineStyles(u string, h []byte) []byte {
 		`, css)
 		return []byte(cssElt)
 	})
-	return h
 }
 
 func inlineScripts(u string, h []byte) []byte {
