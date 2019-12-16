@@ -71,12 +71,7 @@ func inlineImages(u string, h []byte) []byte {
 				return tag
 			}
 			log.Printf("inlining %s", svgURL)
-			elt := fmt.Sprintf(`
-				<svg>
-					%s
-				</svg>
-			`, svg)
-			return []byte(elt)
+			return svg
 		}
 		return srcRx.ReplaceAllFunc(tag, func(src []byte) []byte {
 			content := src[len(`src="`) : len(src)-1]
