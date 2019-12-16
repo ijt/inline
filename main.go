@@ -53,6 +53,25 @@ func inlineImages(u string, h []byte) []byte {
 	imgRx := regexp.MustCompile(`<img[^>]*>`)
 	h = imgRx.ReplaceAllFunc(h, func(tag []byte) []byte {
 		srcRx := regexp.MustCompile(`src="([^"]*)"`)
+		// TODO(ijt): Make this better:
+		src := getSrc(tag)
+		if src == "" {
+			log.Printf("img tag has no src field: %s", tag)
+			return tag
+		}
+		if strings.Contains(src, ".svg") {
+			svg, err := get(src)
+			if err != nil {
+				log.Println("failed: ", err)
+				return tag
+			}
+			elt := fmt.Sprintf(`
+				<svg>
+					%s
+				</svg>
+			`, svg)
+			return []byte(elt)
+		}
 		return srcRx.ReplaceAllFunc(tag, func(src []byte) []byte {
 			content := src[len(`src="`) : len(src)-1]
 			base64Rx := regexp.MustCompile(`^data:image/\w+;base64`)
@@ -75,8 +94,6 @@ func inlineImages(u string, h []byte) []byte {
 				src2 = append(src2, []byte(`data:image/jpeg;base64,`)...)
 			} else if strings.Contains(imgURL, ".png") {
 				src2 = append(src2, []byte(`data:image/png;base64,`)...)
-			} else if strings.Contains(imgURL, ".svg") {
-				src2 = append(src2, []byte(`data:image/svg;base64,`)...)
 			} else {
 				log.Printf("Skpping image in unrecognized format: %s", imgURL)
 				return src
