@@ -25,8 +25,6 @@ func main() {
 	if err := monolith(u); err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("vim-go")
 }
 
 func monolith(u string) error {
@@ -64,10 +62,8 @@ func inlineImages(u string, h []byte) []byte {
 			if !strings.HasPrefix(imgURL, "http") {
 				tailRx := regexp.MustCompile(`/[^/]*$`)
 				dir := tailRx.ReplaceAllString(u, "")
-				log.Printf("u: %s, dir: %s, imgURL: %s", u, dir, imgURL)
 				imgURL = dir + "/" + imgURL
 			}
-			log.Printf("getting %s", imgURL)
 			imgBytes, err := get(imgURL)
 			if err != nil {
 				log.Printf("%s", err)
