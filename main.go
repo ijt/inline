@@ -129,12 +129,12 @@ func get(u string) ([]byte, error) {
 	return bod, nil
 }
 
-func relativize(baseURL, u string) string {
-	if !strings.HasPrefix(u, "http") {
+// relativize makes the url r relative to baseURL if r is a relative URL.
+func relativize(baseURL, r string) string {
+	if !strings.HasPrefix(r, "http") {
 		tailRx := regexp.MustCompile(`/[^/]*$`)
-		dir := tailRx.ReplaceAllString(u, "")
-		return dir + "/" + u
+		dir := tailRx.ReplaceAllString(baseURL, "")
+		return dir + "/" + r
 	}
-	return u
-
+	return r
 }
