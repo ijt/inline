@@ -167,10 +167,11 @@ func inlineScripts(u string, h []byte) []byte {
 			return tag
 		}
 		elt := fmt.Sprintf(`
+			<!-- %s -->
 			<script>
 				%s
 			</script>
-		`, script)
+		`, scriptURL, script)
 		return []byte(elt)
 	})
 }
