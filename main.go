@@ -93,22 +93,13 @@ func inlineImages(u string, h []byte) []byte {
 				log.Println("failed: ", err)
 				return src
 			}
-			imgBytes, err := get(imgURL)
+			imgBytes, typ, err := getWithMime(imgURL)
 			if err != nil {
 				log.Println(err)
 				return src
 			}
 			src2 := []byte(`src="`)
-			if strings.Contains(imgURL, ".jpg") {
-				src2 = append(src2, []byte(`data:image/jpeg;base64,`)...)
-			} else if strings.Contains(imgURL, ".png") {
-				src2 = append(src2, []byte(`data:image/png;base64,`)...)
-			} else if strings.Contains(imgURL, ".gif") {
-				src2 = append(src2, []byte(`data:image/gif;base64,`)...)
-			} else {
-				log.Printf("skipping image in unrecognized format: %s", imgURL)
-				return src
-			}
+			src2 = append(src2, []byte(fmt.Sprintf(`data:%s;base64,`, typ))...)
 			// TODO(ijt): use NewEncoder().
 			b64 := []byte(base64.StdEncoding.EncodeToString(imgBytes))
 			src2 = append(src2, b64...)
@@ -176,21 +167,23 @@ func inlineScripts(u string, h []byte) []byte {
 	})
 }
 
-// get gets the contents of the given URL u.
 func get(u string) ([]byte, error) {
+	bod, _, err := getWithMime(u)
+	return bod, err
+}
+
+func getWithMime(u string) ([]byte, string, error) {
 	resp, err := http.Get(u)
 	if err != nil {
-		return nil, errors.Wrap(err, "fetching url")
-	}
-	if resp.StatusCode != 200 {
-		return nil, errors.Wrapf(err, "got %v status", resp.StatusCode)
+		return nil, "", errors.Wrap(err, "fetching url")
 	}
 	defer resp.Body.Close()
 	bod, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "reading body of page")
+		return nil, "", errors.Wrap(err, "reading body of page")
 	}
-	return bod, nil
+	typ := resp.Header.Get("content-type")
+	return bod, typ, nil
 }
 
 // resolve makes the url r relative to baseURL if r is a relative URL.
