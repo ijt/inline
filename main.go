@@ -31,6 +31,9 @@ func main() {
 func inline(u string) error {
 	// Download the page at the url.
 	bod, err := get(u)
+	if err != nil {
+		return errors.Wrap(err, "fetching page")
+	}
 	bod = inline(u, bod)
 	_, err = os.Stdout.Write(bod)
 	if err != nil {
