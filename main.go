@@ -220,9 +220,10 @@ func getSrc(tag []byte) string {
 
 func fetchDOM(u string) ([]byte, error) {
 	cmd := exec.Command("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--headless", "--dump-dom", u)
-	out, err := cmd.CombinedOutput()
+	cmd.Stderr = os.Stderr
+	out, err := cmd.Output()
 	if err != nil {
-		return nil, errors.Wrapf(err, "dumping page DOM with Chrome: %s", string(out))
+		return nil, errors.Wrapf(err, "dumping page DOM with Chrome")
 	}
 	return out, nil
 }
