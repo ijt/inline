@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
@@ -23,14 +24,14 @@ func main() {
 	}
 	u := flag.Arg(0)
 
-	if err := inline(u); err != nil {
+	if err := app(u); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func inline(u string) error {
+func app(u string) error {
 	// Download the page at the url.
-	bod, err := get(u)
+	bod, err := fetchDOM(u)
 	if err != nil {
 		return errors.Wrap(err, "fetching page")
 	}
@@ -211,4 +212,13 @@ func getSrc(tag []byte) string {
 		return ""
 	}
 	return string(srcEqn[len(`src="`) : len(srcEqn)-1])
+}
+
+func fetchDOM(u string) ([]byte, error) {
+	cmd := exec.Command("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--headless", "--dump-dom", u)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, errors.Wrapf(err, "dumping page DOM with Chrome: %s", string(out))
+	}
+	return out, nil
 }
