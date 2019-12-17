@@ -18,17 +18,17 @@ import (
 func main() {
 	flag.Parse()
 	if flag.NArg() != 1 {
-		fmt.Println("usage: monolith url")
+		fmt.Println("usage: inline url")
 		os.Exit(1)
 	}
 	u := flag.Arg(0)
 
-	if err := monolith(u); err != nil {
+	if err := inline(u); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func monolith(u string) error {
+func inline(u string) error {
 	// Download the page at the url.
 	bod, err := get(u)
 	bod = inline(u, bod)

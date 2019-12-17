@@ -1,4 +1,4 @@
-module github.com/ijt/monolith
+module github.com/ijt/inline
 
 go 1.12
 
