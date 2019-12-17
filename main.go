@@ -33,7 +33,11 @@ func app(u string) error {
 	// Download the page at the url.
 	bod, err := fetchDOM(u)
 	if err != nil {
-		return errors.Wrap(err, "fetching page")
+		log.Println("dumping the DOM with Chrome failed, falling back on Go HTTP client")
+		bod, err = get(u)
+		if err != nil {
+			return errors.Wrap(err, "fetching page")
+		}
 	}
 	bod = inline(u, bod)
 	_, err = os.Stdout.Write(bod)
