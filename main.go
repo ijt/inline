@@ -103,6 +103,8 @@ func inlineImages(u string, h []byte) []byte {
 				src2 = append(src2, []byte(`data:image/jpeg;base64,`)...)
 			} else if strings.Contains(imgURL, ".png") {
 				src2 = append(src2, []byte(`data:image/png;base64,`)...)
+			} else if strings.Contains(imgURL, ".gif") {
+				src2 = append(src2, []byte(`data:image/gif;base64,`)...)
 			} else {
 				log.Printf("skipping image in unrecognized format: %s", imgURL)
 				return src
