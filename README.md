@@ -5,7 +5,7 @@ styles and scripts.
 
 ```
 go get github.com/ijt/inline
-inline https://github.com/ijt/inline > wow.html
-open wow.html
+inline https://gobuffalo.io/en/ > example.html
+open example.html
 ```
 
