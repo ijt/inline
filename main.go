@@ -176,10 +176,14 @@ func inlineScripts(u string, h []byte) []byte {
 	})
 }
 
+// get gets the contents of the given URL u.
 func get(u string) ([]byte, error) {
 	resp, err := http.Get(u)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetching url")
+	}
+	if resp.StatusCode != 200 {
+		return nil, errors.Wrapf(err, "got %v status", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	bod, err := ioutil.ReadAll(resp.Body)
