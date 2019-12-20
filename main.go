@@ -61,7 +61,6 @@ func inlineImages(u string, h []byte) []byte {
 	imgRx := regexp.MustCompile(`<img[^>]*>`)
 	h = imgRx.ReplaceAllFunc(h, func(tag []byte) []byte {
 		srcRx := regexp.MustCompile(`src="([^"]*)"`)
-		// TODO(ijt): Make this better:
 		src := getSrc(tag)
 		if src == "" {
 			log.Printf("img tag has no src field: %s", tag)
@@ -100,7 +99,6 @@ func inlineImages(u string, h []byte) []byte {
 			}
 			src2 := []byte(`src="`)
 			src2 = append(src2, []byte(fmt.Sprintf(`data:%s;base64,`, typ))...)
-			// TODO(ijt): use NewEncoder().
 			b64 := []byte(base64.StdEncoding.EncodeToString(imgBytes))
 			src2 = append(src2, b64...)
 			src2 = append(src2, []byte(`"`)...)
