@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"html"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -183,6 +184,7 @@ func getWithMime(u string) ([]byte, string, error) {
 
 // resolve makes the url r relative to baseURL if r is a relative URL.
 func resolve(baseURL, r string) (string, error) {
+	r = html.UnescapeString(r)
 	if strings.HasPrefix(r, "http") {
 		return r, nil
 	}
