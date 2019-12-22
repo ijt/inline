@@ -183,6 +183,9 @@ func getWithMime(u string) ([]byte, string, error) {
 
 // resolve makes the url r relative to baseURL if r is a relative URL.
 func resolve(baseURL, r string) (string, error) {
+	if strings.HasPrefix(r, "http") {
+		return r, nil
+	}
 	u, err := url.Parse(r)
 	if err != nil {
 		return "", errors.Wrap(err, "parsing possibly relative URL")
