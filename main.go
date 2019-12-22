@@ -23,14 +23,12 @@ func main() {
 		os.Exit(1)
 	}
 	u := flag.Arg(0)
-
-	if err := app(u); err != nil {
+	if err := inlinePageAtURL(u); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func app(u string) error {
-	// Download the page at the url.
+func inlinePageAtURL(u string) error {
 	bod, err := fetchDOM(u)
 	if err != nil {
 		log.Println("dumping the DOM with Chrome failed, falling back on Go HTTP client")
@@ -44,7 +42,6 @@ func app(u string) error {
 	if err != nil {
 		return errors.Wrap(err, "outputting converted result")
 	}
-
 	return nil
 }
 
